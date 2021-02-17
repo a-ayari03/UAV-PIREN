@@ -152,7 +152,7 @@ def get_requested_tif(filetif,path = './traitement_PIREN/') :
     return path_tif, filetif
 
 
-def requested_VIS_AOI (filetif,request_sensor) :
+def requested_VIS_AOI (filetif,request_sensor,r=2) :
     
     ls_path_tif,filetif = get_tif(filetif)
     print(ls_path_tif)
@@ -160,6 +160,7 @@ def requested_VIS_AOI (filetif,request_sensor) :
 
     # Ouverture et recupération des positions des sondes
     filename_Sensor_txt = "./traitement_PIREN/sondes_gps_UTM31N_phase1.txt"
+    filename_Cible_txt =  "./traitement_PIREN/cible_gps_UTM31N_phase1.txt"
     Sensor_coord = reading_gps_file(filename_Sensor_txt)
     Sensor_coord # Contient les coord de toutes les sondes
     ## creation d'un rayon de taille r autour des sensors
@@ -184,7 +185,7 @@ def requested_VIS_AOI (filetif,request_sensor) :
 
     ## Creation de mask pour UNE IMAGE
     ls_mask_image, ls_out_transform= VIS_mask(Piren_VIS.loc["VIS_src"],shapes,ls_coord_circle)
-    return requested_names, requested_shapes, ls_mask_image, ls_out_transform,Piren_VIS
+    return requested_names, requested_shapes, ls_mask_image, ls_out_transform,Piren_VIS,Sensor_coord
 
 def norm_tif(filetif) : 
     
@@ -292,6 +293,57 @@ def hsv(Red_N,Green_N,Blue_N) :
     return HSV_tif
     
     
+def requested_VIS_AOI_Random (filetif,request_cible,r=1) :
     
+    ls_path_tif,filetif = get_tif(filetif)
+    print(ls_path_tif)
+    Piren_VIS,Piren_VIS_ls= readingVIS_norm(ls_path_tif,filetif)
+
+    # Ouverture et recupération des positions des cibles
+    filename_Cible_txt =  "./traitement_PIREN/cible_gps_UTM31N_phase1.txt"
+    
+    """ 
+    Lit un fichier '.txt' contenant les valeurs UTM des sondes
+    """
+    cible_Name_File_GPS=[]
+    cible_x=[]
+    cible_y=[]
+    with open(filename_Cible_txt) as File_GPS:
+        csvReader=csv.reader(File_GPS, delimiter='\t')
+        for row in csvReader:
+            cible_Name_File_GPS.append(row[0]) ## colonne nom du fichier
+            # str list to float list, for plot option
+            cible_x.append(float(row[1])) # colonne coordonnees x 
+            cible_y.append(float(row[2])) # colonne coordonnees y
+        Raw_cible = np.array([cible_Name_File_GPS,cible_x,cible_y]).T # Transpose
+        # Transformation en DataFrame 
+        cible_coord =pd.DataFrame(Raw_cible,columns= ["SensorName","x","y"])
+    """
+    """
+    
+    ## creation d'un rayon de taille r autour des cibles
+    ls_cible = cible_coord["SensorName"] # : toutes les sondes
+    ls_coord_circle,Shape_to_json,circle_name = circle_sensor(ls_cible,cible_coord,r)
+
+    #Creat a shape in GeoJSON format in order to be read with rio and 
+    #serve as mask to crop selected area in the shape
+
+    shapes,shapes_names = circle_to_shape(ls_coord_circle,Shape_to_json,circle_name)
+
+    requested_names  =  []
+    requested_shapes =  []
+    requested_ls_coord_circle = []
+    for i,names in enumerate(shapes_names) :
+        for k in range(len(request_cible)) :  
+            if names == request_cible[k] :
+                requested_names.append(names)
+                requested_shapes.append(shapes[i])
+                requested_ls_coord_circle.append(ls_coord_circle[i])
+
+
+    ## Creation de mask pour UNE IMAGE
+    ls_mask_image, ls_out_transform= VIS_mask(Piren_VIS.loc["VIS_src"],shapes,ls_coord_circle)
+    
+    return requested_names, requested_shapes, ls_mask_image, ls_out_transform,Piren_VIS,cible_coord 
     
     

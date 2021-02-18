@@ -81,7 +81,7 @@ def reading_3band(LONGUEUR,filename='./traitement_PIREN/vis_piren_phase_HSV.tif'
             x_matrix = []
             y_matrix = []
             # Loop pour obtenir la valeur de chaque pt pour chaque band
-            if filename.find('normalized')<0 :
+            if filename.find('HSV')>0 :
                 for j in range(len(x)) :
                     for l in range(len(y)) :
                         for val in dataset.sample([(x[j],y[l])]): 

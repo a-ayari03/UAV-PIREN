@@ -17,6 +17,7 @@ from rasterio.plot import plotting_extent
 from rasterio.plot import show
 from rasterio.plot import show_hist # Useful if you wish to plot all hist and GPS target image
 from rasterio.mask import mask
+from rasterio.enums import Resampling
 import fiona
 from skimage.color import rgb2hsv
 from tools_AA_IR import reading_gps_file,get_tif,circle_sensor,circle_to_shape
@@ -345,5 +346,94 @@ def requested_VIS_AOI_Random (filetif,request_cible,r=1) :
     ls_mask_image, ls_out_transform= VIS_mask(Piren_VIS.loc["VIS_src"],shapes,ls_coord_circle)
     
     return requested_names, requested_shapes, ls_mask_image, ls_out_transform,Piren_VIS,cible_coord 
+    
+def re_sampling(filename,factor) :
+    
+    upscale_factor = 1/int(factor)
+    with rio.open(filename) as dataset :
+        count = []
+        for k in range(1,dataset.profile["count"]+1) : count.append(k)
+        data_raw = dataset.read()
+        data_sampled = dataset.read(count, out_shape =(
+            dataset.count,int(dataset.height*upscale_factor),
+            int(dataset.width*upscale_factor)),
+                            resampling = Resampling.bilinear)
+        
+        #scale image transform 
+        transform = dataset.transform * dataset.transform.scale(
+            (dataset.width / data_sampled.shape[-1]),
+            (dataset.height / data_sampled.shape[-2]))
+        
+        profile = {
+                "driver": "GTiff",
+                "count": len(count),
+                "height": dataset.height*upscale_factor,
+                "width": dataset.width*upscale_factor,
+                'dtype': 'float32',
+                'transform': transform,
+                "meta" : dataset.meta ,
+                "bounds": dataset.bounds ,
+                "crs": dataset.crs ,
+                "res": (transform[0],transform[4]) }
+        
+    fileout = filename[0:filename.find(".tif")] + '_resampled_' + str(factor)+'.tif'
+    with rio.open(fileout, 'w', **profile) as dst:
+        # Read the data from the window and write it to the output raster
+        for i in range(1,len(count)+1) :
+            for k,arr in [(i,data_sampled[i-1,:,:])] : 
+                dst.write(arr.astype(rio.float32), indexes=k)
+                       
+    
+    
+    return data_sampled , fileout
+
+
+
+def greeness_tif(filetif) : 
+    
+    ls_path_tif,filetif = get_tif(filetif) 
+    #print(ls_path_tif)
+    
+    request = './traitement_PIREN/vis_piren_phase_Greeness.tif'
+    path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif'
+    k = 0
+    while ls_path_tif[k].find(request) != 0 and k<len(ls_path_tif)-1 :
+        k+=1
+    path_request = ls_path_tif[k]
+    print(path_request)
+    if path_request != request :
+        
+        with rio.open(os.path.join(path_VIS)) as VIS_src :
+            print("VIS_src :",VIS_src)
+
+            Red_N,Green_N,Blue_N = norm(VIS_src)
+            Greeness = Green_N/(Red_N+Green_N+Blue_N)
+            profile = {
+                "driver": "GTiff",
+                "count": 1,
+                "height": VIS_src.shape[0],
+                "width": VIS_src.shape[1],
+                'dtype': 'float32',
+                'transform': VIS_src.transform,
+                "meta" : VIS_src.meta ,
+                "bounds": VIS_src.bounds ,
+                "crs": VIS_src.crs ,
+                "res": VIS_src.res }
+
+            with rio.open(
+                './traitement_PIREN/vis_piren_phase_Greeness.tif', 'w',
+                **profile) as dst: # count : nombre de band
+                dst.write(Greeness.astype(rio.float32),1)
+
+ 
+    filetif_norm = ["vis_piren_phase_Greeness"]
+    return filetif_norm,request
+                       
+    
+    
+    
+    
+    
+    
     
     

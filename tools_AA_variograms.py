@@ -43,20 +43,20 @@ def reading_3band(LONGUEUR,filename='./traitement_PIREN/vis_piren_phase_HSV.tif'
             target = dataset.index(float(x),float(y))
             ls_index_target.append(target)
 
-        ls_windows_param = [] # liste des paramètres dans la création d'une window
-        dict_windows = {} # dict des targets : améliore la lisibilité
+        dict_windows = {} # liste des paramètres dans la création d'une window
+        dict_windows_param = {} # dict des targets : améliore la lisibilité
 
         for i,index_target in enumerate(ls_index_target) :
             win = Window(index_target[0],index_target[1],win_height,win_width)
             win_transform = dataset.window_transform(win)
             all_band = dataset.read([1,2,3],window = win) # en cas de visualisation
 
-            dict_windows_param = {"win" : win,
+            dict_param = {"win" : win,
                             "win_transform" : win_transform,
                            "all_band" : all_band,
                            "SensorName" : sensor_coord["SensorName"][i]}
 
-            ls_windows_param.append(dict_windows_param)
+            dict_windows_param[sensor_coord["SensorName"][i]] = dict_param
 
             # Vecteurs linéaires avec valeurs uniforméments crées
             x_start = win_transform[2]
@@ -137,7 +137,7 @@ def reading_3band(LONGUEUR,filename='./traitement_PIREN/vis_piren_phase_HSV.tif'
             dict_windows[sensor_coord["SensorName"][i]] = DATA_WINDOW
          
             
-    return dict_windows, ls_windows_param  
+    return dict_windows, dict_windows_param  
 
 
 

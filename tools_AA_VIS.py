@@ -188,13 +188,14 @@ def requested_VIS_AOI (filetif,request_sensor,r=2) :
     ls_mask_image, ls_out_transform= VIS_mask(Piren_VIS.loc["VIS_src"],shapes,ls_coord_circle)
     return requested_names, requested_shapes, ls_mask_image, ls_out_transform,Piren_VIS,Sensor_coord
 
-def norm_tif(filetif) : 
+def norm_tif(filetif,path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif') : 
     
     ls_path_tif,filetif = get_tif(filetif) 
     #print(ls_path_tif)
     
-    request = './traitement_PIREN/vis_piren_phase_normalized.tif'
-    path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif'
+    #request = './traitement_PIREN/vis_piren_phase_normalized.tif'
+    #path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif'
+    request = path_VIS[0:path_VIS.find(".tif")] + '_norm' +'.tif'
     k = 0
     while ls_path_tif[k].find(request) != 0 and k<len(ls_path_tif)-1 :
         k+=1
@@ -219,7 +220,7 @@ def norm_tif(filetif) :
                 "res": VIS_src.res }
 
             with rio.open(
-                './traitement_PIREN/vis_piren_phase_normalized.tif', 'w',
+                request, 'w',
                 **profile) as dst: # count : nombre de band
                 for k, arr in [(1, Red_N), (2, Green_N), (3, Blue_N)]:
                     dst.write(arr.astype(rio.float32), indexes=k)
@@ -244,13 +245,14 @@ def norm(VIS_src) :
     
     return Red_N,Green_N,Blue_N
 
-def hsv_tif(filetif) : 
+def hsv_tif(filetif,path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif') : 
     
     ls_path_tif,filetif = get_tif(filetif) 
     #print(ls_path_tif)
     
-    request = './traitement_PIREN/vis_piren_phase_HSV.tif'
-    path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif'
+    #request = './traitement_PIREN/vis_piren_phase_HSV.tif'
+    #path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif'
+    request = path_VIS[0:path_VIS.find(".tif")] + '_HSV' +'.tif'
     k = 0
     while ls_path_tif[k].find(request) != 0 and k<len(ls_path_tif)-1 :
         k+=1
@@ -276,7 +278,7 @@ def hsv_tif(filetif) :
                 "res": VIS_src.res }
 
             with rio.open(
-                './traitement_PIREN/vis_piren_phase_HSV.tif', 'w',
+                request, 'w',
                 **profile) as dst: # count : nombre de band
                 for k, arr in [(1, HSV_tif[:, :, 0]), 
                                (2, HSV_tif[:, :, 1]), (3,HSV_tif [:, :, 2])]:
@@ -389,13 +391,15 @@ def re_sampling(filename,factor) :
 
 
 
-def greeness_tif(filetif) : 
+def greeness_tif(filetif,
+                 path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif') : 
     
     ls_path_tif,filetif = get_tif(filetif) 
     #print(ls_path_tif)
     
-    request = './traitement_PIREN/vis_piren_phase_Greeness.tif'
-    path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif'
+    #request = './traitement_PIREN/vis_piren_phase_Greeness.tif'
+    #path_VIS = './traitement_PIREN/vis_piren_phase1_ortho_UTM31N.tif'
+    request = path_VIS[0:path_VIS.find(".tif")] + '_greeness' +'.tif'
     k = 0
     while ls_path_tif[k].find(request) != 0 and k<len(ls_path_tif)-1 :
         k+=1

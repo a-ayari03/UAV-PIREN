@@ -186,6 +186,62 @@ def readingIR_all(ls_path_tif,filetif) :
     return Piren_IR,Piren_IR_ls
 
 
+def alternative_readingIR_all(ls_path_tif,filetif) : 
+    Piren_IR_ls = []
+    Piren_IR_name = []
+    mapping_columns = {}
+    dict_IR = {}
+    for k,path_tif in enumerate(ls_path_tif) :
+        with rio.open(os.path.join(path_tif)) as IR_src :
+            Piren_IR_array=IR_src.read(1) # Lit la bande 1
+            Piren_Limits = plotting_extent(IR_src) # Limites
+            Piren_res = IR_src.res # resolution
+            dict_IR["IR_"+filetif[k]] = {"Piren_IR_array" : Piren_IR_array,
+                                 "Piren_Limits" : Piren_Limits,
+                                 "Piren_res" : Piren_res,
+                                 "IR_src" : IR_src }
+            
+        print("completed :","IR_"+filetif[k])
+        
+    return dict_IR
+
+
+def requested_VIS_AOI_IR (filetif,request_sensor,r=2) :
+    
+    ls_path_tif,filetif = get_tif(filetif)
+    print(ls_path_tif)
+    Piren_VIS,Piren_VIS_ls= readingVIS_norm(ls_path_tif,filetif)
+
+    # Ouverture et recupération des positions des sondes
+    filename_Sensor_txt = "./traitement_PIREN/sondes_gps_UTM31N_phase1.txt"
+    filename_Cible_txt =  "./traitement_PIREN/cible_gps_UTM31N_phase1.txt"
+    Sensor_coord = reading_gps_file(filename_Sensor_txt)
+    Sensor_coord # Contient les coord de toutes les sondes
+    ## creation d'un rayon de taille r autour des sensors
+    ls_sensor = Sensor_coord["SensorName"] # : toutes les sondes
+    ls_coord_circle,Shape_to_json,circle_name = circle_sensor(ls_sensor,Sensor_coord)
+
+    #Creat a shape in GeoJSON format in order to be read with rio and 
+    #serve as mask to crop selected area in the shape
+
+    shapes,shapes_names = circle_to_shape(ls_coord_circle,Shape_to_json,circle_name)
+
+    requested_names  =  []
+    requested_shapes =  []
+    requested_ls_coord_circle = []
+    for i,names in enumerate(shapes_names) :
+        for k in range(len(request_sensor)) :  
+            if names == request_sensor[k] :
+                requested_names.append(names)
+                requested_shapes.append(shapes[i])
+                requested_ls_coord_circle.append(ls_coord_circle[i])
+
+
+    ## Creation de mask pour UNE IMAGE
+    ls_mask_image, ls_out_transform= VIS_mask(Piren_VIS.loc["VIS_src"],shapes,ls_coord_circle)
+    return requested_names, requested_shapes, ls_mask_image, ls_out_transform,Piren_VIS,Sensor_coord
+
+
 def IR_mask(ls_IR_src,shapes,list_coord_circle) : 
     ls_out_image = []
     ls_out_transform = []
@@ -218,7 +274,7 @@ def plottingtemp_single_label_IR(Raw,fig,ax1,label,step):
     label_name = ss+str(dict_label[str(label)])
     ax1.plot(Raw['Time'], Raw[str(label)], color=coloration[random_color,:],label=label_name)
     plt.xticks(Raw.Time[::step])
-    plt.title(ss)
+    plt.title(ss,fontsize = 5)
     ax1.legend()
     ax1.grid()
     fig.autofmt_xdate()

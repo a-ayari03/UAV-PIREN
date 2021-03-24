@@ -19,6 +19,79 @@ from rasterio.mask import mask
 from rasterio.windows import Window
 from tools_AA_IR import reading_gps_file,get_tif,circle_sensor,circle_to_shape
 
+def get_3band(filename) :
+    """ 
+    Lit 3 bandes et les stacks dans une seule et même matrice
+    """
+    
+    with rio.open(filename) as dataset :
+        band_1 = dataset.read(1)
+        band_2=dataset.read(2)
+        band_3=dataset.read(3)
+        band_stack = np.dstack((band_1,band_2,band_3))
+    return band_stack
+        
+
+def reshape_3band_to_dataframe (ARRAY_2D) :
+    print('Original shape',":",ARRAY_2D.shape)
+    pixel = ARRAY_2D.reshape((-1,3))
+    pixel = pd.DataFrame(np.array(pixel),
+                            columns = ["band 1","band 2","band 3"])
+    print("pixel shape :",pixel.shape)
+    return pixel
+    
+
+def set_bound_to_NAN(pixel_raw,HSV = False) :
+    """
+    Lit un DataFrame 1D d'une image 3 bandes et exclu les valeurs
+    (255,255,255) représentant aucune donnée réelle par des NaN
+    output : 
+    empty_matrix : matrice de la shape initiale à une bande 
+    pixel : contient les valeurs 
+    pixel_location_1D : contient les indices des des valeurs
+    """
+    if HSV :
+        RGB = get_3band('./traitement_PIREN/vis_piren_phase_1_cropped.tif')
+        pixel_raw_vis = reshape_3band_to_dataframe(RGB)
+        condition = np.array([pixel_raw_vis["band 1"] == 255,
+                              pixel_raw_vis["band 2"] == 255,
+                              pixel_raw_vis["band 3"] == 255]).T
+    else : 
+        condition = np.array([pixel_raw["band 1"] == 255,
+                              pixel_raw["band 2"] == 255,
+                              pixel_raw["band 3"] == 255]).T
+        
+    pixel_255_1 = pixel_raw["band 1"].mask(condition.all(axis = 1))
+    pixel_255_2 = pixel_raw["band 2"].mask(condition.all(axis = 1))
+    pixel_255_3 = pixel_raw["band 3"].mask(condition.all(axis = 1))
+    pixel_255 = pd.DataFrame(np.array([pixel_255_1,pixel_255_2,pixel_255_3]).T,columns = ["band 1","band 2","band 3"])
+    
+    #MASKED WHERE BAND1 BAND2 BAND3 = (255,255,255)
+    pixel_255_1 = pixel_raw["band 1"].mask(condition.all(axis = 1))
+    pixel_255_2 = pixel_raw["band 2"].mask(condition.all(axis = 1))
+    pixel_255_3 = pixel_raw["band 3"].mask(condition.all(axis = 1))
+    pixel_255 = pd.DataFrame(np.array([pixel_255_1,pixel_255_2,pixel_255_3]).T,columns = ["band 1","band 2","band 3"])
+    
+    #Indice location of pixel == NaN // pixel != NaN
+    pixel_location = np.nonzero(np.array(pixel_255).reshape(-1,3) >=0)
+    pixel_location_NAN = np.nonzero(condition.reshape(-1,3) == True  )
+    # indices des valeurs != NAN en 1D
+    pixel_location_1D = np.nonzero(np.array(pixel_255["band 1"]).reshape(-1,1) >=0)
+    
+    # On garde que les valeurs 
+    pixel = np.array(pixel_255.dropna(axis = "rows")).reshape(-1,3)
+    
+    #Pré-allocation d'une matrice de NAN de shape similaire à la taille originale(pour une bande)
+    empty_matrix = np.empty((np.array(pixel_255).reshape(-1,3).shape[0],1))
+    empty_matrix[:] = np.NAN
+    print("empty_matrix shape :",empty_matrix.shape)
+    empty_matrix = empty_matrix.astype("float32")
+    pixel = pixel.astype('float32')
+    
+    return empty_matrix,pixel,pixel_location_1D
+
+    
+    
 def reading_3band(LONGUEUR,filename='./traitement_PIREN/vis_piren_phase_HSV.tif',normalization = True) :
     """ Lit un fichier .tif à 3 bands et retourne un patch carré de coté LONGUEUR au format csv pour l'execution d'un variogram
     """

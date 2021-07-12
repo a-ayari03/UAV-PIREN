@@ -1,5 +1,12 @@
 # UAV-PIREN
 Calibration des températures mesurées par drone sur une parcelle test située dans le parc naturel de La Bassée (Bassin de la Seine)
+V17 - 12/07
+- Ajout d'un notebook permettant l'interpolation d'un cas synthétique 
+définition de deux fonctions
+calculs de variogram
+estimation des modèles de correlogram par minimisation d'une fonction RMSE
+Cokriging classique / Cokriging avec des modèles LMC / Kriging avec modèle de Markov MM2
+
 V16 - 21/06
 - Ajout de modèle de correlogram à plusieurs couches 
 - Méthode d'interpolation Intrinsic Collocated Cokriging - MM2

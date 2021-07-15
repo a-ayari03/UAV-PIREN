@@ -1,5 +1,10 @@
 # UAV-PIREN
 Calibration des températures mesurées par drone sur une parcelle test située dans le parc naturel de La Bassée (Bassin de la Seine)
+V18 - 15/05
+- Deux notebooks d'un cas synthétique :
+Cokriging des Données manquantes sur la variable Z
+Cokriging des Données manquantes sur la variable Y
+
 V17 - 12/07
 - Ajout d'un notebook permettant l'interpolation d'un cas synthétique 
 définition de deux fonctions

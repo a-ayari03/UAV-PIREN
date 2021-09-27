@@ -214,7 +214,7 @@ def reading_3band(LONGUEUR,filename='./traitement_PIREN/vis_piren_phase_HSV.tif'
             
     return dict_windows, dict_windows_param  
 
-def reading_cluster(LONGUEUR,filename='./traitement_PIREN/vis_piren_phase_HSV.tif') :
+def reading_cluster(LONGUEUR,filename='./traitement_PIREN/vis_piren_phase_HSV.tif', x = None,y = None) :
     """ Lit un fichier .tif à 1 bands et retourne un patch carré de coté LONGUEUR au format csv pour l'execution d'un variogram
     """
     #filename = './traitement_PIREN/vis_piren_phase_HSV.tif'
@@ -232,11 +232,15 @@ def reading_cluster(LONGUEUR,filename='./traitement_PIREN/vis_piren_phase_HSV.ti
         print("Taille de la fenetre :",win_height,"x",win_width)
 
         # Loop pour recuperer les coordonnées UTM et convertir en indice 
-        for k in range(len(sensor_coord["SensorName"])) :
-            x = sensor_coord["x"][k] 
-            y = sensor_coord["y"][k]
-            target = dataset.index(float(x),float(y))
-            ls_index_target.append(target)
+        if x != None or y != None :
+            ls_index_target.append(dataset.index(float(x),float(y)))
+        else :
+            
+            for k in range(len(sensor_coord["SensorName"])) :
+                x = sensor_coord["x"][k] 
+                y = sensor_coord["y"][k]
+                target = dataset.index(float(x),float(y))
+                ls_index_target.append(target)
 
         dict_windows = {} # liste des paramètres dans la création d'une window
         dict_windows_param = {} # dict des targets : améliore la lisibilité

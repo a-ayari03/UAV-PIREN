@@ -1,8 +1,8 @@
 # UAV-PIREN
 Calibration des températures mesurées par drone sur une parcelle test située dans le parc naturel de La Bassée (Bassin de la Seine)
 
-V19 - 05/09
-Détail du Workflow :
+## V19 - 05/09
+### Détail du Workflow :
 - Variogram Workflow : Transformation des thermo-mosaïques (.tif) en DataFrame avec un échantillonage défini par l'utilisateur, processus long et légèrement énergivore, ainsi il est possible de sauvegarder le résultat au format .npy.
 Les dataframes sont ensuite utilisés pour calculer les variogrammes (on se limite à la zone autour des sondes). Chaque couple de capteurs (T1,T2,..) et thermo-mosaïque fourni 3 variogrammes, le variogramme de la thermo-mosaïque est un processus ultra long, ainsi il faut obligatoirement ré-echantilloner la thermo-mosaïque
 Les résultats sont sauvegardés dans 3 dossiers différents ( creer un répertoire ./varr/Primary_variogram et /varr/Secondary_variogram et /varr/Cross_variogram )

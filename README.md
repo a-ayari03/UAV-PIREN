@@ -1,5 +1,19 @@
 # UAV-PIREN
 Calibration des températures mesurées par drone sur une parcelle test située dans le parc naturel de La Bassée (Bassin de la Seine)
+
+V19 - 05/09
+Détail du Workflow :
+- Variogram Workflow : Transformation des thermo-mosaïques (.tif) en DataFrame avec un échantillonage défini par l'utilisateur, processus long et légèrement énergivore, ainsi il est possible de sauvegarder le résultat au format .npy.
+Les dataframes sont ensuite utilisés pour calculer les variogrammes (on se limite à la zone autour des sondes). Chaque couple de capteurs (T1,T2,..) et thermo-mosaïque fourni 3 variogrammes, le variogramme de la thermo-mosaïque est un processus ultra long, ainsi il faut obligatoirement ré-echantilloner la thermo-mosaïque
+Les résultats sont sauvegardés dans 3 dossiers différents ( creer un répertoire ./varr/Primary_variogram et /varr/Secondary_variogram et /varr/Cross_variogram )
+- Cokriging Workflow : Interpolation des thermo-mosaïque en température du sol 
+Requiert le pré-chargement des thermo-mosaïques (.tif) en DataFrame et des variogrammes afin de fonctionner. Calcul des modèles de covariance et permet des créer des sauvegardes des résultats interpolés ( créer le dossier ./varr/Estimate et ./varr/cross_valid) et de runner une cross-vérification ( très couteux en temps )  
+
+- Figure_rapport : Figure principale utilisée pour le rapport
+- Lecture IR : Notebook utilisée pour développer certaine figure de clustering et développer la méthode de transformation des thermo-mosaïques en DataFrame 
+
+
+
 V18 - 15/05
 - Deux notebooks d'un cas synthétique :
 Cokriging des Données manquantes sur la variable Z
